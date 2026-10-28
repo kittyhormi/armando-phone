@@ -934,25 +934,63 @@ body {
   30% { transform: translateY(-4px); opacity: 1; }
 }
 
+
 .mateo-respuestas {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 7px;
-  padding: 8px 10px 12px;
+  gap: 8px;
+  padding: 10px 12px 14px;
+  background: #f6f6f6;
+}
+
+.respuestas-titulo {
+  width: 100%;
+  color: #8e8e93;
+  font-size: 11px;
+  text-align: center;
+  margin-bottom: 2px;
 }
 
 .mateo-respuestas button {
   max-width: 88%;
   border: 1px solid #0a84ff;
   border-radius: 18px;
-  padding: 9px 13px;
-  background: transparent;
-  color: #0a84ff;
+  padding: 10px 14px;
+  background: #fff;
+  color: #087cff;
   font: inherit;
   font-size: 13px;
+  line-height: 1.35;
   text-align: left;
   cursor: pointer;
+  transition: background .15s ease;
+}
+
+.mateo-respuestas button:active {
+  background: #e8f3ff;
+}
+
+/* Indicador de mensaje sin leer en Mensajes */
+.punto-no-leido {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+  background: #007aff;
+  display: inline-block;
+  margin-right: 9px;
+  align-self: center;
+}
+
+.fila-mateo {
+  display: flex;
+  align-items: center;
+}
+
+.fila-mateo .t {
+  flex: 1;
+  min-width: 0;
 }
 
 </style>
@@ -1087,10 +1125,14 @@ const DATA = {
 { yo: false, t: "Lo sé mi vida, ojalá pudiera quitarte un poquito de ese miedo. No tienes que cargar con todo tú solo." }
     ]},
      
+
 {
   nombre: "Mateo",
   hora: "19:20",
+  sinLeer: true,
+  nuevo: true,
   chat: [
+
     { dia: "Martes 29 sep 20:16" },
     { yo: false, t: "¿Está Lody contigo?" },
     { yo: true, t: "Sí, gracias. Mi suegra ya está con ella." },
@@ -1318,10 +1360,21 @@ const avHtml = (nombre,i,foto) => foto ? `<div class="av avf" style="background-
 function listaMsg(){
   $("#msgList").innerHTML = DATA.mensajes.map((m,i)=>{
     const ult = [...m.chat].reverse().find(x=>x.t);
-    return `<button class="row ${m.nuevo?"nuevo":""}" data-m="${i}">${avHtml(m.nombre,i,m.foto)}<div class="t"><b>${m.nombre}</b><span>${ult?esc(ult.t):""}</span></div><small>${m.hora}</small></button>`;
+return `<button class="row ${m.nuevo ? "nuevo" : ""}" data-m="${i}">
+  ${m.nombre === "Mateo" && m.sinLeer
+    ? `<span class="punto-no-leido"></span>`
+    : ""}
+  ${avHtml(m.nombre, i, m.foto)}
+  <div class="t">
+    <b>${m.nombre}</b>
+    <span>${ult ? esc(ult.t) : ""}</span>
+  </div>
+  <small>${m.hora}</small>
+</button>`;
   }).join("");
 }
 let mi = 0;
+
 
 
 function chatMsg(i) {
@@ -1331,18 +1384,14 @@ function chatMsg(i) {
   const ultimoYo = m.chat.map(x => !!x.yo).lastIndexOf(true);
 
   const opcionesHtml = m.opciones && !m.eleccionHecha
-    ? `<div class="typing-row">
-         <div class="typing-bubble" aria-label="Mateo está escribiendo">
-           <span></span><span></span><span></span>
-         </div>
-       </div>
-       <div class="mateo-respuestas">
-         ${m.opciones.map((op, j) => `
-           <button data-mateo-choice="${j}">
-             ${esc(op.texto)}
-           </button>
-         `).join("")}
-       </div>`
+    ? `<div class="mateo-respuestas">
+        <div class="respuestas-titulo">Responder</div>
+        ${m.opciones.map((op, j) => `
+          <button data-mateo-choice="${j}">
+            ${esc(op.texto)}
+          </button>
+        `).join("")}
+      </div>`
     : "";
 
   $("#msgChat").innerHTML =
@@ -1360,7 +1409,8 @@ function chatMsg(i) {
     opcionesHtml +
     `<div class="input">
       <i>+</i>
-      <input class="msgin" id="msgIn" placeholder="iMessage" maxlength="300">
+      <input class="msgin" id="msgIn"
+        placeholder="iMessage" maxlength="300">
       <button class="sendb" id="msgSend">↑</button>
     </div>`;
 
@@ -1368,6 +1418,59 @@ function chatMsg(i) {
 
   const s = $("#msgChat .scroll");
   s.scrollTop = s.scrollHeight;
+}
+
+/* Pequeña pausa entre mensajes */
+function pausaMateo(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/* Escribe una burbuja progresivamente */
+async function escribirBurbuja(m, mensaje) {
+  const vista = $("#msgChat");
+  const scroll = vista.querySelector(".scroll");
+  const chat = scroll && scroll.querySelector(".chat");
+
+  if (!chat || DATA.mensajes[mi] !== m) return false;
+
+  /* Mateo muestra los tres puntos antes de responder */
+  if (!mensaje.yo) {
+    const typing = document.createElement("div");
+    typing.className = "typing-row";
+    typing.innerHTML = `
+      <div class="typing-bubble" aria-label="Está escribiendo">
+        <span></span><span></span><span></span>
+      </div>`;
+
+    chat.appendChild(typing);
+    scroll.scrollTop = scroll.scrollHeight;
+
+    await pausaMateo(1000);
+
+    if (DATA.mensajes[mi] !== m) return false;
+    typing.remove();
+  }
+
+  const burbuja = document.createElement("div");
+  burbuja.className = `b ${mensaje.yo ? "me" : "you"}`;
+  burbuja.textContent = "";
+  chat.appendChild(burbuja);
+
+  /* Efecto de escritura letra por letra */
+  for (let k = 0; k < mensaje.t.length; k++) {
+    if (DATA.mensajes[mi] !== m) return false;
+
+    burbuja.textContent += mensaje.t[k];
+    scroll.scrollTop = scroll.scrollHeight;
+
+    await pausaMateo(28);
+  }
+
+  m.chat.push({ yo: mensaje.yo, t: mensaje.t });
+  m.hora = "Ahora";
+  listaMsg();
+
+  return true;
 }
 
 function enviarMsg(){
@@ -1378,7 +1481,7 @@ function enviarMsg(){
 }
 $("#msgList").onclick = e=>{ const r = e.target.closest("[data-m]"); if(r) chatMsg(+r.dataset.m); };
 
-$("#msgChat").addEventListener("click", e => {
+$("#msgChat").addEventListener("click", async e => {
   if (e.target.closest("#msgSend")) {
     enviarMsg();
     return;
@@ -1388,22 +1491,68 @@ $("#msgChat").addEventListener("click", e => {
   if (!boton) return;
 
   const m = DATA.mensajes[mi];
-  if (!m.opciones || m.eleccionHecha) return;
+
+  if (!m.opciones || m.eleccionHecha || m.animando) return;
 
   const opcion = m.opciones[Number(boton.dataset.mateoChoice)];
   if (!opcion) return;
 
-  // Añade la respuesta elegida por Armando y los mensajes de Mateo.
-  m.chat.push({ yo: true, t: opcion.texto });
-  m.chat.push(...opcion.respuesta);
-
-  // Evita que las opciones vuelvan a aparecer en esta sesión.
+  /* Bloquea las opciones mientras se desarrolla la conversación */
   m.eleccionHecha = true;
-  m.hora = "Ahora";
+  m.animando = true;
 
-  listaMsg();
+  const respuestas = [...opcion.respuesta];
+
+  /* Oculta las opciones: todavía no aparece ninguna burbuja de Mateo */
   chatMsg(mi);
+
+  /* Primero se escribe el mensaje que eligió Armando */
+  const enviado = await escribirBurbuja(m, {
+    yo: true,
+    t: opcion.texto
+  });
+
+  if (!enviado) {
+    m.animando = false;
+    return;
+  }
+
+  /* Después se reciben los mensajes, uno por uno */
+  for (const mensaje of respuestas) {
+    await pausaMateo(mensaje.yo ? 350 : 250);
+
+    const escrito = await escribirBurbuja(m, mensaje);
+
+    if (!escrito) {
+      m.animando = false;
+      return;
+    }
+  }
+
+  m.animando = false;
+  listaMsg();
+
+  /* Añade "Entregado" debajo del último mensaje de Armando */
+  const chat = $("#msgChat .chat");
+  const ultimoYo = [...m.chat].map(x => !!x.yo).lastIndexOf(true);
+
+  if (ultimoYo !== -1 && chat) {
+    const burbujas = [...chat.querySelectorAll(".b")];
+    const indiceBurbuja = m.chat
+      .slice(0, ultimoYo + 1)
+      .filter(x => x.t).length - 1;
+
+    const ultimaBurbuja = burbujas[indiceBurbuja];
+
+    if (ultimaBurbuja) {
+      const entregado = document.createElement("div");
+      entregado.className = "entreg";
+      entregado.textContent = "Entregado";
+      ultimaBurbuja.after(entregado);
+    }
+  }
 });
+
 $("#msgChat").addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.id==="msgIn"){ e.preventDefault(); enviarMsg(); } });
 listaMsg();
 
@@ -1629,7 +1778,13 @@ $("#notif").onclick = ()=>{
 };
 $("#msgList").addEventListener("click", e=>{
   const r = e.target.closest("[data-m]");
-  if(r){ DATA.mensajes[+r.dataset.m].nuevo = false; setTimeout(listaMsg, 500); }
+
+if (r) {
+  const m = DATA.mensajes[+r.dataset.m];
+  m.nuevo = false;
+  m.sinLeer = false;
+  setTimeout(listaMsg, 100);
+}
 });
  /* Safari */
 $("#sfList").innerHTML = DATA.busquedas.map(function(g){
