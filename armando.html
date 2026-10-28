@@ -993,6 +993,86 @@ body {
   min-width: 0;
 }
 
+/* Notificación inicial de Mateo */
+#notifMateo {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 250px;
+  z-index: 69;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  border-radius: 22px;
+  background: rgba(246, 246, 250, .91);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.42);
+  box-shadow: 0 10px 28px rgba(0,0,0,.19);
+  color: #000;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  transition: transform .4s ease, opacity .3s ease;
+}
+
+#notifMateo.on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mateo-icon {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d8e8ff;
+  color: #2464b4;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+#notifMateo .ntx {
+  flex: 1;
+  min-width: 0;
+}
+
+#notifMateo .nh {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+}
+
+#notifMateo .nh small {
+  color: #6e6e73;
+  font-size: 13px;
+}
+
+#notifMateo .nb {
+  font-size: 15px;
+  line-height: 1.25;
+  margin-top: 2px;
+}
+
+/* Tres notificaciones apiladas en la pantalla bloqueada */
+#phone.locked #notif {
+  bottom: 305px !important;
+}
+
+#phone.locked #notifMateo {
+  top: auto !important;
+  bottom: 215px !important;
+}
+
+#phone.locked #notifRecuerdo {
+  bottom: 125px !important;
+}
+
 </style>
 </head>
 <body>
@@ -1026,6 +1106,16 @@ body {
   <div id="lock"><div id="lDate"></div><div id="lTime"></div><div class="lbtn" style="left:44px">🔦</div><div class="lbtn" style="right:44px">📷</div><div id="lHint">Desliza hacia arriba para abrir</div></div>
   <div id="pass"><div id="pTitle">Introduce el código</div><div id="dots"></div><div id="keys"></div><button id="pCancel">Cancelar</button></div>
    <div id="notif"><div class="nic">💬</div><div class="ntx"><div class="nh"><b>Mamá</b><small>ahora</small></div><div class="nb">¿Ya comiste algo?</div></div></div>
+<div id="notifMateo" class="notif-mateo">
+  <div class="mateo-icon">M</div>
+  <div class="ntx">
+    <div class="nh">
+      <b>Mateo</b>
+      <small>ahora</small>
+    </div>
+    <div class="nb">Mando, te llamé hace rato. ¿Cómo estás?</div>
+  </div>
+</div>
 
 <div id="notifRecuerdo">
   <img src="img/amarillo.jpeg" alt="Foto de Amarillo">
@@ -1759,12 +1849,19 @@ function abrirChatMama(){
   const i = DATA.mensajes.findIndex(m=>m.nombre==="Mamá"); if(i<0) return;
   inicio(); abrir("mensajes"); DATA.mensajes[i].nuevo = false; listaMsg(); chatMsg(i);
 }
-setTimeout(()=>{
-  if(notifVista) return;
- actualizarNotifMama();
- $("#notif").classList.add("on");
-  if(!phone.classList.contains("locked")) programarOcultar();
+
+setTimeout(() => {
+  if (notifVista) return;
+
+  actualizarNotifMama();
+  $("#notif").classList.add("on");
+  $("#notifMateo").classList.add("on");
+
+  if (!phone.classList.contains("locked")) {
+    programarOcultar();
+  }
 }, 1000);
+
 const desbloquearOrig = desbloquear;
 desbloquear = function(){
   desbloquearOrig();
