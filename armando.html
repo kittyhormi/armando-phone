@@ -1377,6 +1377,7 @@ bottom: 375px !important;
 #phone:has(#incoming.on) #status { z-index: 61; }
 #phone:has(#incoming.on) #bar-home { display: none !important; }
 #phone:has(#incoming.on) #notifStack { opacity: 0 !important; pointer-events: none !important; }
+#phone:has(#incoming.on) #status { color: #fff; }
 </style>
 </head>
 <body>
@@ -2404,8 +2405,12 @@ function mostrarLlamadaEntrante() {
   $("#incoming").classList.add("on");
 }
 
-/* Cambia 6000 por los milisegundos que quieras esperar (6000 = 6 segundos) */
-setTimeout(mostrarLlamadaEntrante, 6000);
+/* La llamada entra cuando se abre la app Teléfono */
+const abrirOrig = abrir;
+abrir = function (id) {
+  abrirOrig(id);
+  if (id === "llamadas") setTimeout(mostrarLlamadaEntrante, 800);
+};
 
 $("#incDecline").onclick = () => {
   $("#incoming").classList.remove("on");
