@@ -1112,9 +1112,9 @@ const DATA = {
     {
       texto: "La verdad, no estoy bien.",
       respuesta: [
-        { yo: false, t: "Ya me lo imaginaba. Te conozco." },
-        { yo: true, t: "Estoy cansado, Mateo. Y me da culpa decirlo porque Brian es el que está en esa cama." },
-        { yo: false, t: "También puedes estar cansado tú. No tienes que demostrarle nada a nadie." }
+        { yo: false, t: "Ya me imaginaba, te conozco." },
+        { yo: true, t: "Estoy cansado, Mateo. Y me siento muy culpable de decirlo porque Brian es el que está en esa cama." },
+        { yo: false, t: "También puedes estar cansado tú, no tienes que demostrarle nada a nadie." }
       ]
     },
     {
@@ -1122,7 +1122,7 @@ const DATA = {
       respuesta: [
         { yo: false, t: "Claro que sí. Dime a qué hora y ahí estoy." },
         { yo: true, t: "No quiero estar solo. Ni siquiera tienes que hablar, solo..." },
-        { yo: false, t: "Lo entiendo. Mañana voy y nos sentamos con él un rato, ¿si?" }
+        { yo: false, t: "Te entiendo. Mañana voy y nos sentamos con él un rato, ¿si?" }
       ]
     }
   ],
@@ -1323,38 +1323,26 @@ function listaMsg(){
 }
 let mi = 0;
 
-function chatMsg(i){
+
+function chatMsg(i) {
   const m = DATA.mensajes[i];
   mi = i;
 
   const ultimoYo = m.chat.map(x => !!x.yo).lastIndexOf(true);
 
-
-const opcionesHtml = m.opciones && !m.eleccionHecha
-  ? `<div class="typing-row">
-       <div class="typing-bubble" aria-label="Mateo está escribiendo">
-         <span></span><span></span><span></span>
+  const opcionesHtml = m.opciones && !m.eleccionHecha
+    ? `<div class="typing-row">
+         <div class="typing-bubble" aria-label="Mateo está escribiendo">
+           <span></span><span></span><span></span>
+         </div>
        </div>
-     </div>
-     <div class="mateo-respuestas">
-       ${m.opciones.map((op, j) => `
-         <button data-mateo-choice="${j}">${esc(op.texto)}</button>
-       `).join("")}
-     </div>`
-  : "";
-    ? `<div style="padding:10px 12px 14px;display:flex;flex-direction:column;gap:8px;background:#f6f6f6;">
-        <div style="font-size:12px;color:#777;text-align:center;margin-bottom:2px;">
-          Responde a Mateo
-        </div>
-        ${m.opciones.map((op, j) => `
-          <button data-mateo-choice="${j}"
-            style="border:1px solid #c8c8ce;background:#fff;color:#087cff;
-            border-radius:17px;padding:10px 13px;font-size:13px;
-            text-align:left;line-height:1.35;cursor:pointer;">
-            ${esc(op.texto)}
-          </button>
-        `).join("")}
-      </div>`
+       <div class="mateo-respuestas">
+         ${m.opciones.map((op, j) => `
+           <button data-mateo-choice="${j}">
+             ${esc(op.texto)}
+           </button>
+         `).join("")}
+       </div>`
     : "";
 
   $("#msgChat").innerHTML =
@@ -1364,7 +1352,9 @@ const opcionesHtml = m.opciones && !m.eleccionHecha
         x.dia
           ? `<div class="day">${esc(x.dia)}</div>`
           : `<div class="b ${x.yo ? "me" : "you"}">${esc(x.t)}</div>` +
-            (k === ultimoYo ? `<div class="entreg">Entregado</div>` : "")
+            (k === ultimoYo
+              ? `<div class="entreg">Entregado</div>`
+              : "")
       ).join("") +
     `</div></div>` +
     opcionesHtml +
