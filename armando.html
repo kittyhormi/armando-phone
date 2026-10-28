@@ -1120,7 +1120,7 @@ bottom: 375px !important;
   bottom: 135px !important;
   z-index: 60 !important;
 }
- /* ===== NOTIFICACIONES APILADAS: bloque definitivo ===== */
+/* ===== NOTIFICACIONES APILADAS: bloque definitivo ===== */
 #notifStack {
   position: absolute;
   left: 10px;
@@ -1129,25 +1129,40 @@ bottom: 375px !important;
   z-index: 65;
   display: flex;
   flex-direction: column;
-  gap: 10px;
   pointer-events: none;
+  transition: opacity .3s ease;
 }
 
-/* Las tarjetas dejan de flotar y se acomodan una debajo de otra */
-#phone.locked #notifStack #notif.on[id],
-#phone.locked #notifStack #notifMateo.on[id],
-#phone.locked #notifStack #notifRecuerdo.on[id] {
-  position: relative !important;
-  top: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  right: auto !important;
-  z-index: auto !important;
+/* Las tarjetas entran en el flujo normal, una debajo de otra */
+#notifStack > [id] {
+  position: static;
 }
 
-/* Una tarjeta oculta no ocupa espacio, así las demás se acomodan */
-#phone.locked #notifStack > :not(.on) {
-  display: none !important;
+/* Tarjeta oculta: se pliega a cero, sin desaparecer del todo */
+#notifStack > :not(.on) {
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  overflow: hidden;
+}
+
+/* Tarjeta visible: ocupa su espacio y deja 10px de separación */
+#notifStack > .on {
+  max-height: 140px;
+  margin-top: 10px;
+}
+
+/* Transiciones suaves al aparecer, desaparecer y moverse */
+#phone.locked #notifStack > [id] {
+  transition:
+    transform .4s ease,
+    opacity .3s ease,
+    max-height .4s ease,
+    margin-top .4s ease,
+    padding .4s ease,
+    border-width .4s ease !important;
 }
 
 /* Desbloqueado, o con el teclado del código abierto: no se ven */
