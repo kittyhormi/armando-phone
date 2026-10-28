@@ -1025,6 +1025,49 @@ const DATA = {
 { yo: true, t: "Tengo miedo de que Brian no despierte." },
 { yo: false, t: "Lo sé mi vida, ojalá pudiera quitarte un poquito de ese miedo. No tienes que cargar con todo tú solo." }
     ]},
+     
+{
+  nombre: "Mateo",
+  hora: "19:20",
+  chat: [
+    { dia: "Martes 29 sep 20:16" },
+    { yo: false, t: "¿Está Lody contigo?" },
+    { yo: true, t: "Sí, gracias. Mi suegra ya está con ella." },
+    { yo: false, t: "Bueno, cualquier cosa me avisas, ¿sí?" },
+    { yo: true, t: "Sí, gracias, Mateo." },
+    { dia: "Hoy 19:20" },
+    { yo: false, t: "Mando, te llamé hace rato. ¿Cómo estás?" },
+    { yo: false, t: "No tienes que contestarme ahora si no tienes ganas. Solo quería saber de ti." }
+  ],
+  opciones: [
+    {
+      texto: "Perdón, no tenía cabeza para contestar.",
+      respuesta: [
+        { yo: false, t: "No tienes que pedirme perdón por eso, hermano." },
+        { yo: true, t: "Siento que llevo semanas haciendo todo en automático." },
+        { yo: false, t: "Me imagino. No sé ni qué decirte Mando pero aquí estoy." }
+      ]
+    },
+    {
+      texto: "La verdad, no estoy bien.",
+      respuesta: [
+        { yo: false, t: "Ya me lo imaginaba. Te conozco." },
+        { yo: true, t: "Estoy cansado, Mateo. Y me da culpa decirlo porque Brian es el que está en esa cama." },
+        { yo: false, t: "También puedes estar cansado tú. No tienes que demostrarle nada a nadie." }
+      ]
+    },
+    {
+      texto: "¿Puedes venir al hospital mañana?",
+      respuesta: [
+        { yo: false, t: "Claro que sí. Dime a qué hora y ahí estoy." },
+        { yo: true, t: "No quiero estar solo. Ni siquiera tienes que hablar, solo..." },
+        { yo: false, t: "Lo entiendo. Mañana voy y nos sentamos con él un rato, ¿si?" }
+      ]
+    }
+  ],
+  eleccionHecha: false
+},
+
         { nombre: "Mi amor ❤️", hora: "Ayer", foto: "img/solo bri.JPG", chat: [
       { dia: "Martes 29 sep 18:05" },
       { yo: false, t: "Ya salí del trabajo, ¿necesitas algo del súper?" },
@@ -1218,16 +1261,52 @@ function listaMsg(){
   }).join("");
 }
 let mi = 0;
+
 function chatMsg(i){
-  const m = DATA.mensajes[i]; mi = i;
-  const ultimoYo = m.chat.map(x=>!!x.yo).lastIndexOf(true);
-  $("#msgChat").innerHTML = dbar("Mensajes", avHtml(m.nombre,i,m.foto) + m.nombre) +
-    `<div class="scroll"><div class="chat">` + m.chat.map((x,k)=>
-      x.dia ? `<div class="day">${x.dia}</div>` : `<div class="b ${x.yo?"me":"you"}">${esc(x.t)}</div>` + (k===ultimoYo?`<div class="entreg">Entregado</div>`:"")).join("") +
-    `</div></div><div class="input"><i>+</i><input class="msgin" id="msgIn" placeholder="iMessage" maxlength="300"><button class="sendb" id="msgSend">↑</button></div>`;
+  const m = DATA.mensajes[i];
+  mi = i;
+
+  const ultimoYo = m.chat.map(x => !!x.yo).lastIndexOf(true);
+
+  const opcionesHtml = m.opciones && !m.eleccionHecha
+    ? `<div style="padding:10px 12px 14px;display:flex;flex-direction:column;gap:8px;background:#f6f6f6;">
+        <div style="font-size:12px;color:#777;text-align:center;margin-bottom:2px;">
+          Responde a Mateo
+        </div>
+        ${m.opciones.map((op, j) => `
+          <button data-mateo-choice="${j}"
+            style="border:1px solid #c8c8ce;background:#fff;color:#087cff;
+            border-radius:17px;padding:10px 13px;font-size:13px;
+            text-align:left;line-height:1.35;cursor:pointer;">
+            ${esc(op.texto)}
+          </button>
+        `).join("")}
+      </div>`
+    : "";
+
+  $("#msgChat").innerHTML =
+    dbar("Mensajes", avHtml(m.nombre, i, m.foto) + m.nombre) +
+    `<div class="scroll"><div class="chat">` +
+      m.chat.map((x, k) =>
+        x.dia
+          ? `<div class="day">${esc(x.dia)}</div>`
+          : `<div class="b ${x.yo ? "me" : "you"}">${esc(x.t)}</div>` +
+            (k === ultimoYo ? `<div class="entreg">Entregado</div>` : "")
+      ).join("") +
+    `</div></div>` +
+    opcionesHtml +
+    `<div class="input">
+      <i>+</i>
+      <input class="msgin" id="msgIn" placeholder="iMessage" maxlength="300">
+      <button class="sendb" id="msgSend">↑</button>
+    </div>`;
+
   $("#msgChat").classList.add("on");
-  const s = $("#msgChat .scroll"); s.scrollTop = s.scrollHeight;
+
+  const s = $("#msgChat .scroll");
+  s.scrollTop = s.scrollHeight;
 }
+
 function enviarMsg(){
   const t = $("#msgIn").value.trim(); if(!t) return;
   DATA.mensajes[mi].chat.push({yo:true, t});
@@ -1235,7 +1314,33 @@ function enviarMsg(){
   listaMsg(); chatMsg(mi); $("#msgIn").focus();
 }
 $("#msgList").onclick = e=>{ const r = e.target.closest("[data-m]"); if(r) chatMsg(+r.dataset.m); };
-$("#msgChat").addEventListener("click", e=>{ if(e.target.closest("#msgSend")) enviarMsg(); });
+
+$("#msgChat").addEventListener("click", e => {
+  if (e.target.closest("#msgSend")) {
+    enviarMsg();
+    return;
+  }
+
+  const boton = e.target.closest("[data-mateo-choice]");
+  if (!boton) return;
+
+  const m = DATA.mensajes[mi];
+  if (!m.opciones || m.eleccionHecha) return;
+
+  const opcion = m.opciones[Number(boton.dataset.mateoChoice)];
+  if (!opcion) return;
+
+  // Añade la respuesta elegida por Armando y los mensajes de Mateo.
+  m.chat.push({ yo: true, t: opcion.texto });
+  m.chat.push(...opcion.respuesta);
+
+  // Evita que las opciones vuelvan a aparecer en esta sesión.
+  m.eleccionHecha = true;
+  m.hora = "Ahora";
+
+  listaMsg();
+  chatMsg(mi);
+});
 $("#msgChat").addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.id==="msgIn"){ e.preventDefault(); enviarMsg(); } });
 listaMsg();
 
