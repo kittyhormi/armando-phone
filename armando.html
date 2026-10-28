@@ -1269,6 +1269,34 @@ bottom: 375px !important;
   line-height: 1;
   vertical-align: -1px;
 }
+ /* ===== LLAMADA CON TRANSCRIPT ===== */
+.ctr {
+  width: calc(100% - 40px);
+  max-height: 300px;
+  margin: 22px 20px 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ctr p {
+  max-width: 82%;
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.35;
+  background: rgba(255,255,255,.14);
+}
+
+.ctr p.ella {
+  align-self: flex-start;
+}
+
+.ctr p.yo {
+  align-self: flex-end;
+  background: rgba(10,132,255,.55);
+}
 </style>
 </head>
 <body>
@@ -2012,6 +2040,27 @@ function llamar(i){
   }
   pantalla("llamando…");
   v.classList.add("on"); $("#status").classList.remove("dark");
+   if(r.transcript){
+    setTimeout(function(){
+      if(tok!==callTok) return;
+      v.innerHTML = avLlamada(r,i,"cav") + '<div class="cname">' + r.nombre + '</div><div class="cst" id="cSt">0:00</div><div class="ctr" id="cTr"></div><button class="cend" data-end><span>📞</span></button>';
+      let s = 0, n = 0, fin = 0;
+      const iv = setInterval(function(){
+        if(tok!==callTok || !v.classList.contains("on")){ clearInterval(iv); return; }
+        s++;
+        const tiempo = Math.floor(s/60) + ":" + pad(s%60);
+        const el = $("#cSt");
+        if(fin && s>=fin){ if(el) el.textContent = "Llamada finalizada · " + tiempo; clearInterval(iv); return; }
+        if(el) el.textContent = tiempo;
+        if(s%3===0 && n<r.transcript.length){
+          const x = r.transcript[n++], box = $("#cTr");
+          if(box){ box.insertAdjacentHTML("beforeend", '<p class="' + (x.yo ? "yo" : "ella") + '">' + esc(x.t) + '</p>'); box.scrollTop = box.scrollHeight; }
+          if(n>=r.transcript.length) fin = s + 4;
+        }
+      },1000);
+    },1200);
+    return;
+  }
   if(!r.buzon) return;
   setTimeout(function(){
     pantalla("Buzón de voz", LL.buzon);
