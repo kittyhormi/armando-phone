@@ -1073,6 +1073,34 @@ body {
   bottom: 125px !important;
 }
 
+/* Posiciones corregidas para las tres notificaciones */
+#phone.locked #notif {
+  top: auto !important;
+  bottom: 305px !important;
+  z-index: 65 !important;
+}
+
+#phone.locked #notifMateo {
+  top: auto !important;
+  bottom: 215px !important;
+  z-index: 66 !important;
+}
+
+#phone.locked #notifRecuerdo {
+  top: auto !important;
+  bottom: 125px !important;
+  z-index: 67 !important;
+}
+
+/* Ocultarlas al desbloquear el teléfono */
+#phone:not(.locked) #notif,
+#phone:not(.locked) #notifMateo,
+#phone:not(.locked) #notifRecuerdo {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-140%) !important;
+}
+
 </style>
 </head>
 <body>
@@ -1873,6 +1901,15 @@ $("#notif").onclick = ()=>{
   if(phone.classList.contains("locked")){ pendiente = true; mostrarPass(); }
   else { notifVista = true; abrirChatMama(); }
 };
+ 
+$("#notifMateo").onclick = () => {
+  $("#notifMateo").classList.remove("on");
+
+  if (phone.classList.contains("locked")) {
+    mostrarPass();
+  }
+};
+
 $("#msgList").addEventListener("click", e=>{
   const r = e.target.closest("[data-m]");
 
