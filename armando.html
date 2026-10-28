@@ -1102,7 +1102,24 @@ body {
   pointer-events: none !important;
   transform: translateY(-140%) !important;
 }
+/* Corrección final del orden de las notificaciones */
+#phone.locked #notif {
+  top: auto !important;
+  bottom: 320px !important;
+  z-index: 80 !important;
+}
 
+#phone.locked #notifMateo {
+  top: auto !important;
+  bottom: 225px !important;
+  z-index: 70 !important;
+}
+
+#phone.locked #notifRecuerdo {
+  top: auto !important;
+  bottom: 130px !important;
+  z-index: 60 !important;
+}
 </style>
 </head>
 <body>
