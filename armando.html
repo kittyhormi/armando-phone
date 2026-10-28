@@ -1225,6 +1225,50 @@ bottom: 375px !important;
   border-radius: 50%;
   background: #0a84ff;
 }
+ /* ===== MENSAJES: lista más fina ===== */
+#msgList .row {
+  padding: 12px 14px;
+}
+
+#msgList .row .av {
+  width: 50px;
+  height: 50px;
+}
+
+#msgList .row + .row::before {
+  left: 76px;
+}
+
+#msgList .row .t b {
+  font-size: 17px;
+  margin-bottom: 1px;
+}
+
+#msgList .row .t span {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+/* Chats sin leer: nombre más fuerte */
+#msgList .row.nuevo .t b,
+#msgList .row:has(.punto-no-leido) .t b {
+  font-weight: 700;
+}
+
+/* Flechita junto a la hora */
+#msgList .row small {
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+#msgList .row small::after {
+  content: "›";
+  margin-left: 6px;
+  color: #c7c7cc;
+  font-size: 20px;
+  line-height: 1;
+  vertical-align: -1px;
+}
 </style>
 </head>
 <body>
