@@ -1297,6 +1297,86 @@ bottom: 375px !important;
   align-self: flex-end;
   background: rgba(10,132,255,.55);
 }
+ /* ===== LLAMADA ENTRANTE ===== */
+#incoming {
+  position: absolute;
+  inset: 0;
+  z-index: 59;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 150px;
+  background: linear-gradient(#4a4a52, #141416);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-30px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+#incoming.on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.inc-av {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(#ff9f6b, #f0623c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  animation: incPulse 1.4s ease-out infinite;
+}
+
+@keyframes incPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,255,255,.35); }
+  100% { box-shadow: 0 0 0 28px rgba(255,255,255,0); }
+}
+
+.inc-name { font-size: 34px; font-weight: 500; margin-top: 22px; }
+.inc-st { font-size: 18px; opacity: .7; margin-top: 6px; }
+
+.inc-btns {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 110px;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 44px;
+}
+
+.inc-b {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.inc-b i {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-style: normal;
+}
+
+.inc-dec i { background: #ff3b30; }
+.inc-dec i span { display: block; transform: rotate(135deg); }
+.inc-ans i { background: #34c759; }
+
+/* Mientras suena: se ve la hora, y no se ven ni la barra de abajo ni las notificaciones */
+#phone:has(#incoming.on) #status { z-index: 61; }
+#phone:has(#incoming.on) #bar-home { display: none !important; }
+#phone:has(#incoming.on) #notifStack { opacity: 0 !important; pointer-events: none !important; }
 </style>
 </head>
 <body>
@@ -1353,6 +1433,15 @@ bottom: 375px !important;
     <div class="nrsub">Mira esta foto que guardaste...</div>
   </div>
 </div>
+</div>
+ <div id="incoming">
+  <div class="inc-av">M</div>
+  <div class="inc-name">Mamá</div>
+  <div class="inc-st">móvil</div>
+  <div class="inc-btns">
+    <button class="inc-b inc-dec" id="incDecline"><i><span>📞</span></i>Rechazar</button>
+    <button class="inc-b inc-ans" id="incAnswer"><i>📞</i>Contestar</button>
+  </div>
 </div>
 <div id="bar-home" title="Inicio"></div>
 </div>
@@ -2044,8 +2133,8 @@ function llamar(i){
     if(tok!==callTok) return;
     v.innerHTML = avLlamada(r,i,"cav") + '<div class="cname">' + r.nombre + '</div><div class="cst" id="cSt">' + estado + '</div>' + (msg ? '<div class="cmsg">' + msg + '</div>' : "") + '<button class="cend" data-end><span>📞</span></button>';
   }
-  pantalla("llamando…");
-  v.classList.add("on"); $("#status").classList.remove("dark");
+  pantalla(r.transcript ? "0:00" : "llamando…");
+ v.classList.add("on"); $("#status").classList.remove("dark");
    if(r.transcript){
     setTimeout(function(){
       if(tok!==callTok) return;
@@ -2306,7 +2395,37 @@ const observarNotificaciones = new MutationObserver(
 });
 
 acomodarNotificaciones();
+/* Llamada entrante de Mamá */
+let llamadaEntranteMostrada = false;
 
+function mostrarLlamadaEntrante() {
+  if (llamadaEntranteMostrada) return;
+  llamadaEntranteMostrada = true;
+  $("#incoming").classList.add("on");
+}
+
+/* Cambia 6000 por los milisegundos que quieras esperar (6000 = 6 segundos) */
+setTimeout(mostrarLlamadaEntrante, 6000);
+
+$("#incDecline").onclick = () => {
+  $("#incoming").classList.remove("on");
+};
+
+$("#incAnswer").onclick = () => {
+  $("#incoming").classList.remove("on");
+
+  const i = LL.recientes.findIndex(r => r.transcript);
+  if (i < 0) return;
+
+  ocultarPass();
+  if (phone.classList.contains("locked")) desbloquear();
+
+  setTimeout(() => {
+    inicio();
+    abrir("llamadas");
+    llamar(i);
+  }, 600);
+};
 </script>
 </body>
 </html>
