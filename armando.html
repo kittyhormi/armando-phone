@@ -1171,6 +1171,48 @@ bottom: 375px !important;
   opacity: 0 !important;
   pointer-events: none !important;
 }
+ /* ===== MENSAJES: burbujas más parecidas a iPhone ===== */
+.chat {
+  gap: 2px;
+  padding: 12px 14px 16px;
+}
+
+.b {
+  max-width: 75%;
+  padding: 8px 14px;
+  border-radius: 20px;
+  line-height: 1.3;
+  letter-spacing: -.2px;
+}
+
+.b.me {
+  background: linear-gradient(#2d9bff, #0a84ff);
+}
+
+/* Mensajes seguidos de la misma persona: más juntos */
+.b.me + .b.me,
+.b.you + .b.you {
+  margin-top: 2px;
+}
+
+/* Última burbuja de cada grupo: esquina inferior más cuadrada */
+.b.me:not(:has(+ .b.me)) {
+  border-bottom-right-radius: 6px;
+}
+
+.b.you:not(:has(+ .b.you)) {
+  border-bottom-left-radius: 6px;
+}
+
+.day {
+  font-size: 12px;
+  margin: 16px 0 6px;
+}
+
+.entreg {
+  font-size: 11px;
+  margin: 2px 4px 4px 0;
+}
 </style>
 </head>
 <body>
